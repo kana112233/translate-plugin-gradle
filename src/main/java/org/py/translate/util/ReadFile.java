@@ -35,6 +35,10 @@ public class ReadFile {
 
     public static List<File> getFileList(List<File> filelist, String strPath) {
         File dir = new File(strPath);
+        if (dir.isFile()) {
+            filelist.add(dir);
+            return filelist;
+        }
         // 该文件目录下文件全部放入数组
         File[] files = dir.listFiles();
         if (files != null) {

@@ -4,10 +4,12 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.psi.PsiFile;
 import org.py.translate.Logger;
+import org.py.translate.constant.GlobalConfig;
 import org.py.translate.util.GoogleTranslateUtil;
 
 import java.io.File;
@@ -33,40 +35,56 @@ public class TranslateAction extends AnAction {
      * @param event
      */
     private void executeTranslate(AnActionEvent event){
+        if (GlobalConfig.isRunning()) {
+            return;
+        }
+
+        GlobalConfig.setRunning(true);
+
         final Editor mEditor = (Editor) event.getData(PlatformDataKeys.EDITOR);
 
         if (null == mEditor) {
             return;
         }
-        final SelectionModel selectionModel = mEditor.getSelectionModel();
-        String selectText = selectionModel.getSelectedText();
+        Runnable runable = new Runnable() {
+            @Override
+            public void run() {
 
-        String[] strings = selectText.split("\n\n");
-        StringBuilder translateString = new StringBuilder();
-        for (String string : strings) {
-            System.err.println(strings);
-            translateString.append(translateJob.parseString(mEditor, string)+"\n\n");
-        }
-        //修正文本
-        //1 批量修改中文括号到英文
-        String backString = translateString.toString().replaceAll("（","(");
-        backString = backString.replaceAll("）",")");
+                final SelectionModel selectionModel = mEditor.getSelectionModel();
+                String selectText = selectionModel.getSelectedText();
 
-        //获取文件名称
-        PsiFile psiFile = event.getData(LangDataKeys.PSI_FILE);
-        if (psiFile != null) {
-            String path = psiFile.getVirtualFile().getParent().getPath();
-            int index = psiFile.getName().lastIndexOf(".");
-            String fileName = psiFile.getName().substring(0, index);
-            File file = new File(path+File.separator+fileName+".hj");
-            try {
-                FileOutputStream os = new FileOutputStream(file);
-                os.write(backString.getBytes("UTF-8") );
-            } catch (IOException e) {
-                e.printStackTrace();
+                String[] strings = selectText.split("\n\n");
+                StringBuilder translateString = new StringBuilder();
+                for (String string : strings) {
+                    System.err.println(strings);
+                    translateString.append(translateJob.parseString(mEditor, string)+"\n\n");
+                }
+                //修正文本
+                //1 批量修改中文括号到英文
+                String backString = translateString.toString().replaceAll("（","(");
+                backString = backString.replaceAll("）",")");
+
+                //获取文件名称
+                PsiFile psiFile = event.getData(LangDataKeys.PSI_FILE);
+                if (psiFile != null) {
+                    String path = psiFile.getVirtualFile().getParent().getPath();
+                    int index = psiFile.getName().lastIndexOf(".");
+                    String fileName = psiFile.getName().substring(0, index);
+                    File file = new File(path+File.separator+fileName+".hj");
+                    try {
+                        FileOutputStream os = new FileOutputStream(file);
+                        os.write(backString.getBytes("UTF-8") );
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                GoogleTranslateUtil.showPopupBalloon("translate end" );
+
+                GlobalConfig.setRunning(false);
             }
-        }
-        GoogleTranslateUtil.showPopupBalloon("translate end" );
+        };
+        ApplicationManager.getApplication().runWriteAction(runable);
+
 
     }
 
