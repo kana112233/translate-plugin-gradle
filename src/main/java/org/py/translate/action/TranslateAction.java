@@ -66,7 +66,7 @@ public class TranslateAction extends AnAction {
                 e.printStackTrace();
             }
         }
-        GoogleTranslateUtil.showPopupBalloon("翻译结束");
+        GoogleTranslateUtil.showPopupBalloon("translate end" );
 
     }
 

@@ -26,7 +26,7 @@ public class TranslateJob {
         return noTranslateFlag;
     }
 
-    public String parseString(Editor mEditor, String selectText) {
+    public synchronized String parseString(Editor mEditor, String selectText) {
         List<String> noTranslateFlag= getNoTranslateFlag();
         for (String flag : noTranslateFlag) {
             int index = selectText.indexOf(flag);

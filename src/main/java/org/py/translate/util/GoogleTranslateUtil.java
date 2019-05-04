@@ -70,16 +70,19 @@ public class GoogleTranslateUtil {
      * @return
      * @throws Exception
      */
-    public static String translate(String word, String fyMethod, Editor mEditor) throws Exception {
+    public synchronized static String translate(String word, String fyMethod, Editor mEditor) throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
 
         //replace填坑参数地址值
         String url = getUrl(fyMethod).replace("#{tk}", invokeJSFunc(word)).replace("#{word}", URLEncoder.encode(word, "utf-8"));
         HttpGet get = new HttpGet(url);
+        //这里cookie 设置过期时间 expires=Sun, 03-Nov-2019 07:09:07 GMT; 2019-11-03 07:09:07
+        get.setHeader("cookie","NID=182=ylWY_f3Eae17ic2AYE_mSlQX3lQL9cpESRKgAeJHosR2gIHwrKl6VPNbBTLuTfE2TcmaaGFD65wsuqjuOnzAwNEj4YhXqHSxYabVstkbK2i1pVuM79oNxxcIriWqQhtEdhCSZ6NE2zjc_YWZzKtRqwwQXYlkBZozG6m7x3Sig84; expires=Sun, 03-Nov-2019 07:09:07 GMT; path=/; domain=.google.cn; HttpOnly");
         get.setHeader(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
         get.setHeader(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,zh;q=0.9");
 
         //发起请求
+
         CloseableHttpResponse response = client.execute(get);
         if (200 == response.getStatusLine().getStatusCode()) {
 
