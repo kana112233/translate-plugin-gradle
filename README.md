@@ -12,6 +12,7 @@ build/distributions/translate-*.zip
 
 这个项目没有项目管理很难受，现在开始这个
 [项目开发入门](https://www.jetbrains.org/intellij/sdk/docs/tutorials/build_system/prerequisites.html)
+[测试翻译的项目,idea插件开发文档](https://github.com/kana112233/intellij-sdk-docs.git)
 
 idea 全文翻译插件 会标记哪些不用翻译。
 选中翻译，可以翻译所有选中的内容，当翻译完会有提示。没有翻译完会一直卡着。
