@@ -1,12 +1,11 @@
 <idea-plugin>
     <id>org.py.translate.translate</id>
     <name>翻译文本</name>
-    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+    <vendor email="makey22112@gamil.com" url="http://www.wordword.xyz">xx</vendor>
 
-    <description><![CDATA[
-    翻译文本markdown text等,可以右键文件夹.<br>
-    <em>most HTML tags may be used</em>
-    ]]></description>
+    <description>
+        翻译文本markdown text等,可以右键文件夹
+   </description>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
@@ -15,7 +14,7 @@
     -->
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
+
     </extensions>
 
     <actions>
