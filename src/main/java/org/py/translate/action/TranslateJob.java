@@ -22,17 +22,27 @@ public class TranslateJob {
 
     private static List<String> getNoTranslateFlag(){
         List<String> noTranslateFlag = new ArrayList();
-        noTranslateFlag.add("```");
+        //noTranslateFlag.add("```");
+        noTranslateFlag.add("\\|");
+        noTranslateFlag.add("---");
+        //noTranslateFlag.add("\\[.*]\\(.*\\)");
         return noTranslateFlag;
     }
 
     public synchronized String parseString(Editor mEditor, String selectText) {
+
+
         List<String> noTranslateFlag= getNoTranslateFlag();
         for (String flag : noTranslateFlag) {
-            int index = selectText.indexOf(flag);
-            if (index >= 0) {
+            Pattern p = compile(flag);
+            Matcher m = p.matcher(selectText.trim());
+            if(m.find()){
                 return selectText;
             }
+            /*int index = selectText.indexOf(flag);
+            if (index >= 0) {
+                return selectText;
+            }*/
         }
         //  \[.*]\(.*\)  当匹配到这个正则就截取，保存 以后在拼接
         if (null != selectText && !"".equals(selectText.trim())) {

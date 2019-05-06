@@ -15,6 +15,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.util.regex.Pattern.compile;
 
 /**
  * @author hj
@@ -51,29 +55,56 @@ public class TranslateFolderAction extends AnAction {
                     String pathRoot = virtualFile.getPath();
                     ReadFile.getFileList(fileList, pathRoot);
                 }
+                //String buildPath = project.getBasePath()+File.separator+"build";
                 fileList.forEach(translateFile -> {
                     String filePath = translateFile.getAbsolutePath();
                     System.out.println("翻译结果路径" + filePath);
                     String selectText = ReadFile.readFile(filePath);
                     String[] strings = selectText.split("\n\n");
                     StringBuilder translateString = new StringBuilder();
+                    boolean isFind = false;
                     for (String string : strings) {
+
+                        Pattern p = compile("```");
+                        Matcher m = p.matcher(string.trim());
+                        int count = 0;
+                        while(m.find()){
+                            count++;
+                        }
+                        if(count >= 2){
+                            translateString.append(string+"\n\n");
+                            continue;
+                        }
+                        if(count == 1){
+                            isFind = !isFind;
+                        }
+                        if (isFind) {
+                            translateString.append(string+"\n\n");
+                            continue;
+                        }
                         String translateText = translateJob.parseString(null, string)+"\n\n";
-                        System.err.println(translateText);
                         translateString.append(translateText);
+                        System.out.println(translateText);
                     }
                     //修正文本
+                    //修正文本
                     //1 批量修改中文括号到英文
-                    String backString = translateString.toString().replaceAll("（","(");
+                    String backString = translateString.toString().replaceAll("\\（","\\(");
+                    backString = backString.replaceAll("\\）","\\)");
+
+                    backString = backString.replaceAll("（","(");
                     backString = backString.replaceAll("）",")");
 
+                    backString = backString.replaceAll("\\ \\/\\ ","/");
+                    backString = backString.replaceAll("\\/\\ ","/");
                     //获取文件名称
-                    int index = filePath.lastIndexOf(".");
-                    String filePathName = filePath.substring(0, index);
-                    File file = new File(filePathName+".hj");
+
+                    //int index = filePath.lastIndexOf(".");
+                    //String filePathName = filePath.substring(0, index);
+                    File file = new File(filePath);
                     try {
                         FileOutputStream os = new FileOutputStream(file);
-                        os.write(backString.getBytes("UTF-8") );
+                        os.write(backString.toString().getBytes("UTF-8") );
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
