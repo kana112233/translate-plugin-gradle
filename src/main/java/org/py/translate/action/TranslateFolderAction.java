@@ -15,6 +15,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +28,7 @@ import static java.util.regex.Pattern.compile;
  */
 public class TranslateFolderAction extends AnAction {
 
-
+    ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
 
     TranslateJob translateJob = new TranslateJob();
 
@@ -55,65 +57,124 @@ public class TranslateFolderAction extends AnAction {
                     String pathRoot = virtualFile.getPath();
                     ReadFile.getFileList(fileList, pathRoot);
                 }
-                //String buildPath = project.getBasePath()+File.separator+"build";
-                fileList.forEach(translateFile -> {
-                    String filePath = translateFile.getAbsolutePath();
-                    System.out.println("翻译结果路径" + filePath);
-                    String selectText = ReadFile.readFile(filePath);
-                    String[] strings = selectText.split("\n\n");
-                    StringBuilder translateString = new StringBuilder();
-                    boolean isFind = false;
-                    for (String string : strings) {
-
-                        Pattern p = compile("```");
-                        Matcher m = p.matcher(string.trim());
-                        int count = 0;
-                        while(m.find()){
-                            count++;
-                        }
-                        if(count >= 2){
-                            translateString.append(string+"\n\n");
-                            continue;
-                        }
-                        if(count == 1){
-                            isFind = !isFind;
-                        }
-                        if (isFind) {
-                            translateString.append(string+"\n\n");
-                            continue;
-                        }
-                        String translateText = translateJob.parseString(null, string)+"\n\n";
-                        translateString.append(translateText);
-                        System.out.println(translateText);
-                    }
-                    //修正文本
-                    //修正文本
-                    //1 批量修改中文括号到英文
-                    String backString = translateString.toString().replaceAll("\\（","\\(");
-                    backString = backString.replaceAll("\\）","\\)");
-
-                    backString = backString.replaceAll("（","(");
-                    backString = backString.replaceAll("）",")");
-
-                    backString = backString.replaceAll("\\ \\/\\ ","/");
-                    backString = backString.replaceAll("\\/\\ ","/");
-                    //获取文件名称
-
-                    //int index = filePath.lastIndexOf(".");
-                    //String filePathName = filePath.substring(0, index);
-                    File file = new File(filePath);
-                    try {
-                        FileOutputStream os = new FileOutputStream(file);
-                        os.write(backString.toString().getBytes("UTF-8") );
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+                startMultiThreadTranslate(fileList, 10);
 
                 GlobalConfig.setRunning(false);
             }
         });
     }
+    //多线程
+    private void startMultiThreadTranslate(List<File> fileList, int n){
+        int count = fileList.size() / n + 1;
+        for (int i = 0; i < n; i++) {
+            int finalI = i;
+            fixedThreadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    int endCount = count*(finalI+1) - 1;
+                    int end = fileList.size() <= endCount ? fileList.size() : endCount;
+                    for (int j = count* finalI; j <= end ; j++) {
+                        File translateFile = fileList.get(j);
+                        System.err.println(Thread.currentThread().getName() + "正在执行。。。");
+                        System.err.println("count "+j);
+                        doTranslate(translateFile);
 
+                    }
+                }
+            });
+        }
+    }
+
+    private void doTranslate(File translateFile) {
+        String filePath = translateFile.getAbsolutePath();
+        System.out.println("翻译结果路径" + filePath);
+        String selectText = ReadFile.readFile(filePath);
+        String[] strings = selectText.split("\n\n");
+        StringBuilder translateString = new StringBuilder();
+        boolean isFind = false;
+        for (String string : strings) {
+            //跳过
+            Pattern p = compile("```");
+            Matcher m = p.matcher(string.trim());
+            int count = 0;
+            while(m.find()){
+                count++;
+            }
+            if(count >= 2){
+                translateString.append(string+"\n\n");
+                continue;
+            }
+            if(count == 1){
+                //发现```时跳过
+                isFind = !isFind;
+                translateString.append(string+"\n\n");
+                continue;
+            }
+            if (isFind) {
+                //```之间跳过
+                translateString.append(string+"\n\n");
+                continue;
+            }
+
+            boolean isContinue = false;
+            List<String> noTranslateFlag= getNoTranslateFlag();
+            for (String flag : noTranslateFlag) {
+                Pattern p3 = compile(flag);
+                Matcher m3 = p3.matcher(string.trim());
+                if(m3.find()){
+                    translateString.append(string+"\n\n");
+                    isContinue = true;
+                    break;
+                }
+            }
+            if(isContinue){
+                continue;
+            }
+
+            String translateText = translateJob.parseString(null, string)+"\n\n";
+
+            String backString = translateText;
+            //修正文本
+            backString = backString.replaceAll("<! -","<!--");
+            backString = backString.replaceAll("- >","-->");
+            backString = backString.replaceAll("？","?");
+            backString = backString.replaceAll("/\n","/");
+            backString = backString.replaceAll("＃","#");
+            backString = backString.replaceAll(" #","#");
+            backString = backString.replaceAll(" /","/");
+            backString = backString.replaceAll("：",":");
+            backString = backString.replaceAll("！","!");
+            backString = backString.replaceAll("。",".");
+            backString = backString.replaceAll("，",",");
+            backString = backString.replaceAll("\\（","\\(");
+            backString = backString.replaceAll("\\）","\\)");
+
+            backString = backString.replaceAll("（","(");
+            backString = backString.replaceAll("）",")");
+
+            backString = backString.replaceAll("\\ \\/\\ ","/");
+            backString = backString.replaceAll("\\/\\ ","/");
+
+            translateString.append(backString);
+            System.out.println(backString);
+        }
+        //获取文件名称
+        File file = new File(filePath);
+        try {
+            FileOutputStream os = new FileOutputStream(file);
+            os.write(translateString.toString().getBytes("UTF-8") );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static List<String> getNoTranslateFlag(){
+        List<String> noTranslateFlag = new ArrayList();
+        //noTranslateFlag.add("```");
+        noTranslateFlag.add("\\|");
+        noTranslateFlag.add("---");
+        //noTranslateFlag.add("\\[.*]\\(.*\\)");
+        return noTranslateFlag;
+    }
 
 }
