@@ -4,9 +4,6 @@ import com.intellij.openapi.editor.Editor;
 import org.py.translate.Logger;
 import org.py.translate.constant.Contstants;
 import org.py.translate.util.GoogleTranslateUtil;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,8 +15,7 @@ import static java.util.regex.Pattern.compile;
  */
 public class TranslateJob {
 
-
-    public synchronized String parseString(Editor mEditor, String selectText) {
+    public static String parseString(Editor mEditor, String selectText) {
         //  \[.*]\(.*\)  当匹配到这个正则就截取，保存 以后在拼接
         if (null != selectText && !"".equals(selectText.trim())) {
             selectText = selectText.trim();

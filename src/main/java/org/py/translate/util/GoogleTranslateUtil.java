@@ -70,7 +70,7 @@ public class GoogleTranslateUtil {
      * @return
      * @throws Exception
      */
-    public synchronized static String translate(String word, String fyMethod, Editor mEditor) throws Exception {
+    public static String translate(String word, String fyMethod, Editor mEditor) throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
 
         //replace填坑参数地址值

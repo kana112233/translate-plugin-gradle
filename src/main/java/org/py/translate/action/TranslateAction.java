@@ -22,8 +22,6 @@ import java.io.IOException;
  */
 public class TranslateAction extends AnAction {
 
-    TranslateJob translateJob = new TranslateJob();
-
     @Override
     public void actionPerformed(AnActionEvent event) {
         Logger.init(this.getClass().getSimpleName(), 1);
@@ -57,7 +55,7 @@ public class TranslateAction extends AnAction {
                 StringBuilder translateString = new StringBuilder();
                 for (String string : strings) {
                     System.err.println(strings);
-                    translateString.append(translateJob.parseString(mEditor, string)+"\n\n");
+                    translateString.append(TranslateJob.parseString(mEditor, string)+"\n\n");
                 }
                 //修正文本
                 //1 批量修改中文括号到英文

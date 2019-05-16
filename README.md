@@ -25,13 +25,18 @@ test_py.md
 
 
 
-部署文件在.idea/下面
+部署文件在build/distrubutions/下面
 
 log
 第一版: 翻译选中的文字
 第二版: 选中文件夹翻译
 -新建action不能使用。--删除项目里面的插件，重新启动。
 
+
+这里用到了cookie 设置过期时间 expires=Sun, 03-Nov-2019 07:09:07 GMT; 2019-11-03 07:09:07
+如果到期了要重新在浏览器上复制过来。
+
+翻译文件一直错误,修改了JV参数  -Dfile.encoding=UTF-8
 
 
 
