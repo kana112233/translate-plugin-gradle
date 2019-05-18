@@ -1,12 +1,12 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '0.4.4'
+    id 'org.jetbrains.intellij' version '0.4.7'
 }
 
 apply plugin: 'org.jetbrains.intellij'
 
 group 'org.py.translate'
-version '2.2.0'
+version '2019.1.1'
 
 sourceCompatibility = 1.8
 
@@ -19,12 +19,13 @@ dependencies {
 }
 
 intellij {
-    version 'IC-2018.1'
+    version 'IC-2019.1'
 }
 patchPluginXml {
     changeNotes """
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>"""
+      <h1>add thread</h1><br>
+      <h1>delete 3 warning</h1><br>
+      <em>thread count is 5</em>"""
 }
 
 publishPlugin {
