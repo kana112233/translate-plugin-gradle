@@ -5,7 +5,13 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
+import com.intellij.openapi.ui.popup.Balloon;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.StatusBar;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,6 +22,7 @@ import org.py.translate.util.ReadFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -23,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Thread.sleep;
 import static java.util.regex.Pattern.compile;
 import static org.py.translate.util.MyUtil.getCorrectString;
 import static org.py.translate.util.MyUtil.getNoTranslateFlag;
@@ -34,73 +42,48 @@ import static org.py.translate.util.MyUtil.getNoTranslateFlag;
 public class MyTask extends Task.Backgroundable {
 
     private AnActionEvent event;
+    private Project project;
+    private ProgressIndicator progressIndicator;
+
+    private List<File> fileList;
+    private int begin;
+    private int end;
 
     ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
 
-    public MyTask(@Nullable Project project, @Nullable AnActionEvent event, @Nls @NotNull String title) {
+    public MyTask(@Nullable Project project, @Nullable AnActionEvent event, @Nls @NotNull String title
+            ,List<File> fileList, int begin, int end) {
         super(project, title);
         this.event = event;
+        this.project = project;
+
+        this.fileList = fileList;
+        this.begin = begin;
+        this.end = end;
     }
 
     @Override
     public void run(@NotNull ProgressIndicator progressIndicator) {
-//        ProgressManager.getInstance().executeNonCancelableSection(() -> {
-            // 获取当前选择的文件或文件夹路径、多选文件、文件夹
-            VirtualFile[] virtualFiles = CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(event.getDataContext());
-            if(virtualFiles == null || virtualFiles.length == 0 ) {
-                return;
-            }
-            List<File> fileList = new ArrayList<>();
-            for (VirtualFile virtualFile : virtualFiles) {
-                // 获取翻译路径
-                String pathRoot = virtualFile.getPath();
-                ReadFile.getFileList(fileList, pathRoot);
-            }
-            startMultiThreadTranslate(fileList, 5);
-
-            GlobalConfig.setRunning(false);
-//        });
-    }
-
-    //多线程
-    private void startMultiThreadTranslate(List<File> fileList, int n){
-        if (fileList.size() <= 10) {
-            fixedThreadPool.execute(() -> {
-                int end = fileList.size();
-                for (int j = 0; j < end ; j++) {
-                    File translateFile = fileList.get(j);
-                    System.err.println(Thread.currentThread().getName() + "正在执行。。。");
-                    System.err.println("count "+j);
-
-                    doTranslate(translateFile);
-
-                }
-            });
-        }else{
-            int count = fileList.size() / n + 1; //12/5 +1 = 3
-            for (int i = 0; i < n; i++) {
-                int finalI = i;
-                fixedThreadPool.execute(() -> {
-                    int endCount = count * (finalI + 1) - 1;
-                    //3*1-1=2   0
-                    //3*2-1=5   3
-                    // 3*3-1=8  6
-                    // 3*4-1=11  9
-                    // 3*5-1=14   12  12
-                    int end = fileList.size()-1 <= endCount ? fileList.size()-1 : endCount;
-                    for (int j = count* finalI; j <= end ; j++) {
-                        File translateFile = fileList.get(j);
-                        System.err.println(Thread.currentThread().getName() + "正在执行。。。");
-                        System.err.println("count "+j);
-
-                        doTranslate(translateFile);
-
-                    }
-                });
-            }
+        this.progressIndicator = progressIndicator;
+        progressIndicator.setText("开始翻译");
+        progressIndicator.setIndeterminate(true);
+        progressIndicator.setFraction(0.001);
+        //3 0 1 2/3
+        for (int j = this.begin; j <= this.end ; j++) {
+            File translateFile = fileList.get(j);
+            doTranslate(translateFile);
+            int kk = j + 1 - begin;
+            System.err.println("kk: "+kk);
+            int gg = end - begin + 1;
+            System.err.println("gg: "+gg);
+            double fraction = new BigDecimal((float)  kk/gg ).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+            System.err.println("fraction: " + this.begin + "value: " + fraction);
+            progressIndicator.setFraction( fraction );
+            progressIndicator.setText("正在翻译");
         }
-
+        showBar();
     }
+
 
     private void doTranslate(File translateFile) {
         String filePath = translateFile.getAbsolutePath();
@@ -117,7 +100,9 @@ public class MyTask extends Task.Backgroundable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
+
 
     private void getTranslateString(String[] strings, StringBuilder translateString) {
         boolean isFind = false;
@@ -168,4 +153,19 @@ public class MyTask extends Task.Backgroundable {
             System.out.println(backString);
         }
     }
+
+
+    private void showBar() {
+        progressIndicator.setFraction(1.0);
+        progressIndicator.setText("翻译完成");
+        progressIndicator.setIndeterminate(false);
+
+        StatusBar statusBar = WindowManager.getInstance().getStatusBar(this.project);
+        JBPopupFactory.getInstance().createHtmlTextBalloonBuilder("翻译完成啦一个"
+                , MessageType.INFO, null)
+                .setFadeoutTime(7500)
+                .createBalloon()
+                .show(RelativePoint.getCenterOf(statusBar.getComponent()), Balloon.Position.atRight);
+    }
+
 }
