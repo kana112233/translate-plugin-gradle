@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>org.py.translate.translate</id>
-    <name>翻译文本</name>
+    <name>translateMd</name>
     <vendor email="makey22112@gamil.com" url="http://www.wordword.xyz">xx</vendor>
 
     <description>

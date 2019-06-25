@@ -17,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.py.translate.action.TranslateJob;
 import org.py.translate.constant.GlobalConfig;
+import org.py.translate.util.MarkdownUtil;
+import org.py.translate.util.MyCallback;
 import org.py.translate.util.ReadFile;
 
 import java.io.File;
@@ -89,14 +91,14 @@ public class MyTask extends Task.Backgroundable {
         String filePath = translateFile.getAbsolutePath();
         System.out.println("翻译结果路径" + filePath);
         String selectText = ReadFile.readFile(filePath);
-        String[] strings = selectText.split("\n\n");
-        StringBuilder translateString = new StringBuilder();
-        getTranslateString(strings, translateString);
+        String str = MarkdownUtil.parse(selectText, new MyCallback());
+
+
         //获取文件名称
         File file = new File(filePath);
         try {
             FileOutputStream os = new FileOutputStream(file);
-            os.write(translateString.toString().getBytes("UTF-8") );
+            os.write(str.getBytes("UTF-8") );
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -104,55 +106,6 @@ public class MyTask extends Task.Backgroundable {
     }
 
 
-    private void getTranslateString(String[] strings, StringBuilder translateString) {
-        boolean isFind = false;
-        for (String string : strings) {
-            //跳过
-            Pattern p = compile("```");
-            Matcher m = p.matcher(string.trim());
-            int count = 0;
-            while(m.find()){
-                count++;
-            }
-            if(count >= 2){
-                translateString.append(string).append("\n\n");
-                continue;
-            }
-            if(count == 1){
-                //发现```时跳过
-                isFind = !isFind;
-                translateString.append(string+"\n\n");
-                continue;
-            }
-            if (isFind) {
-                //```之间跳过
-                translateString.append(string).append("\n\n");
-                continue;
-            }
-
-            boolean isContinue = false;
-            List<String> noTranslateFlag= getNoTranslateFlag();
-            for (String flag : noTranslateFlag) {
-                Pattern p3 = compile(flag);
-                Matcher m3 = p3.matcher(string.trim());
-                if(m3.find()){
-                    translateString.append(string).append("\n\n");
-                    isContinue = true;
-                    break;
-                }
-            }
-            if(isContinue){
-                continue;
-            }
-
-            String translateText = TranslateJob.parseString(null, string)+"\n\n";
-
-            String backString = getCorrectString(translateText);
-
-            translateString.append(backString);
-            System.out.println(backString);
-        }
-    }
 
 
     private void showBar() {
