@@ -1,6 +1,8 @@
 package org.py.translate.util;
 
 import entity.Code;
+import entity.Heading;
+import entity.MARK;
 import entity.Paragraph;
 import org.py.translate.action.TranslateJob;
 
@@ -17,24 +19,64 @@ public class MarkdownUtil {
     public static String parse(String selectText, CallbackMk callbackMk){
 
         String[] strings = selectText.split("\n\n");
-        StringBuilder translateString = new StringBuilder();
-        getTranslateString(strings, translateString);
+//        StringBuilder translateString = new StringBuilder();
+        List tokenlist = new  ArrayList();
+        getTranslateString(strings, tokenlist);
 
         callbackMk.run();
         return "";
     }
 
+    public static void main(String[] args) {
+
+        String selectText = "# 我是井号"+"\n\n";
+        selectText += "## 我是井号"+"\n\n";
+        selectText += "```"+"\n\n";
+        selectText += "xxx112"+"\n\n";
+        selectText += "222"+"\n\n";
+        selectText += "333"+"\n\n";
+        selectText += "```"+"\n\n";
+        MarkdownUtil.parse(selectText, new MyCallback());
+    }
+
     //解析
-    private static void  getTranslateString(String[] strings, StringBuilder translateString) {
-        List tokenlist = new  ArrayList();
+    private static void getTranslateString(String[] strings, List tokenlist) {
+//        List tokenlist = new  ArrayList();
 //        list.add(new Code().setLang(""));
         int index = 0;
         while (true) {
+            if( index >= strings.length ){
+                break;
+            }
             // 空格
-          if(strings[index].length()<=0){
-              tokenlist.add(new Paragraph().setText(strings[index]) );
-          }
-
+            if(strings[index].length()<=0){
+                tokenlist.add(new Paragraph().setText(strings[index++]) );
+                continue;
+            }
+            if(strings[index].startsWith(MARK.H1.getStart())){
+                tokenlist.add(new Heading().setDepth(1).setText(strings[index++].substring(MARK.H1.getStart().length()) ) );
+                continue;
+            }
+            if(strings[index].startsWith(MARK.H2.getStart() )){
+                tokenlist.add(new Heading().setDepth(2).setText(strings[index++].substring(MARK.H2.getStart().length()) ) );
+                continue;
+            }
+            if(strings[index].startsWith(MARK.H3.getStart())){
+                tokenlist.add(new Heading().setDepth(3).setText(strings[index++].substring(MARK.H3.getStart().length()) ) );
+                continue;
+            }
+            if(strings[index].startsWith(MARK.H4.getStart())){
+                tokenlist.add(new Heading().setDepth(4).setText(strings[index++].substring(MARK.H4.getStart().length())) );
+                continue;
+            }
+            if(strings[index].startsWith(MARK.H5.getStart())){
+                tokenlist.add(new Heading().setDepth(5).setText(strings[index++].substring(MARK.H5.getStart().length())) );
+                continue;
+            }
+            if(strings[index].startsWith(MARK.H6.getStart())){
+                tokenlist.add(new Heading().setDepth(6).setText(strings[index++].substring(MARK.H6.getStart().length())) );
+                continue;
+            }
 
             //code
             boolean isFind = strings[index].startsWith("```");
@@ -53,14 +95,13 @@ public class MarkdownUtil {
                     }
                 }
                 tokenlist.add(new Code().setText(codeStr) );
+                index++;
                 continue;
             }
-            //
-
-
+            //end code
 
         }
-
+        tokenlist.forEach(item-> System.out.println(item.toString()));
     }
 
     // 渲染

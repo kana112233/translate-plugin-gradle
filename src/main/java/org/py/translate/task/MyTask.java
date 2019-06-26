@@ -108,6 +108,8 @@ public class MyTask extends Task.Backgroundable {
 
 
 
+
+
     private void showBar() {
         progressIndicator.setFraction(1.0);
         progressIndicator.setText("翻译完成");
