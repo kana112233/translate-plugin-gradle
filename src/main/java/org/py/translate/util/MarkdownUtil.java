@@ -1,11 +1,15 @@
 package org.py.translate.util;
 
-import entity.Code;
-import entity.Heading;
-import entity.MARK;
-import entity.Paragraph;
+import entity.*;
+import org.commonmark.node.Document;
+import org.commonmark.node.Node;
+import org.commonmark.node.Text;
+import org.commonmark.parser.Parser;
 import org.py.translate.action.TranslateJob;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -27,16 +31,10 @@ public class MarkdownUtil {
         return "";
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
-        String selectText = "# 我是井号"+"\n\n";
-        selectText += "## 我是井号"+"\n\n";
-        selectText += "```"+"\n\n";
-        selectText += "xxx112"+"\n\n";
-        selectText += "222"+"\n\n";
-        selectText += "333"+"\n\n";
-        selectText += "```"+"\n\n";
-        MarkdownUtil.parse(selectText, new MyCallback());
+
+
     }
 
     //解析

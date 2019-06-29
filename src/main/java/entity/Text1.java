@@ -1,6 +1,6 @@
 package entity;
 
-public class Text {
+public class Text1 {
     private final static String type = "text";
     private String text;
 

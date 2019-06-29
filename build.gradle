@@ -17,10 +17,11 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compileOnly 'org.projectlombok:lombok:1.18.2'
+    compile group: 'com.atlassian.commonmark', name: 'commonmark', version: '0.12.1'
 }
 
 intellij {
-    version 'IU-2018.1.5'
+    version 'IC-2019.1'
 }
 patchPluginXml {
     changeNotes """
