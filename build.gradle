@@ -25,9 +25,10 @@ intellij {
 }
 patchPluginXml {
     changeNotes """
-      <p>put 'translate markdown' at the bottom of contextMenu </p>
-      <p> use commonmark to parse markdown </p>
-      <p>add thread</p><br>
+        <h1> 英文 中文 互相翻译 </h1>
+      <h6>put 'translate markdown' at the bottom of contextMenu </h6>
+      <h6> use commonmark to parse markdown </h6>
+      <p>add 5 Task to translate </p><br>
       <p>delete 3 warning</p><br>
       <p>thread count is 5</p>
        support idea2019.1
