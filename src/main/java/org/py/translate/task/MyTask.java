@@ -12,11 +12,14 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.awt.RelativePoint;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.py.translate.action.TranslateJob;
 import org.py.translate.constant.GlobalConfig;
+import org.py.translate.markdown.renderer.MarkdownContentRenderer;
 import org.py.translate.util.MarkdownUtil;
 import org.py.translate.util.MyCallback;
 import org.py.translate.util.ReadFile;
@@ -25,6 +28,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -91,24 +95,54 @@ public class MyTask extends Task.Backgroundable {
         String filePath = translateFile.getAbsolutePath();
         System.out.println("翻译结果路径" + filePath);
         String selectText = ReadFile.readFile(filePath);
-        String str = MarkdownUtil.parse(selectText, new MyCallback());
+        StringBuilder yamlHead = new StringBuilder();
+        StringBuilder translateBody = new StringBuilder();
+
+        int endFlag = -1; // -1 -2
+        String[] split = selectText.split("\n");
+        if (split.length > 0 && "---".equals(split[0])) {
+            for (int i = 1; i < split.length; i++) {
+                if ("---".equals(split[i])) {
+                    endFlag = i;
+                    break;
+                }
+            }
+        } else {
+//            yamlHead = "";
+            endFlag = -2;
+        }
+        if (-1 == endFlag) {
+            return;
+        } else if (-2 == endFlag) {
+            translateBody.append(selectText);
+        } else {
+            for (int i = 0; i <= endFlag; i++) {
+                yamlHead.append(split[i]).append("\n");
+            }
+            yamlHead.append("\n");
+            for (int i = endFlag + 1; i < split.length; i++) {
+                translateBody.append(split[i]).append("\n");
+            }
+
+        }
+
+        Parser parser = Parser.builder().build();
+        Node node = parser.parse(translateBody.toString());
+        MarkdownContentRenderer renderer = MarkdownContentRenderer.builder().build();
+        String render = renderer.render(node);
+        System.out.println(render);
 
 
         //获取文件名称
         File file = new File(filePath);
         try {
             FileOutputStream os = new FileOutputStream(file);
-            os.write(str.getBytes("UTF-8") );
+            os.write((yamlHead.append(render).toString() ).getBytes(StandardCharsets.UTF_8) );
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
-
-
-
-
-
 
     private void showBar() {
         progressIndicator.setFraction(1.0);

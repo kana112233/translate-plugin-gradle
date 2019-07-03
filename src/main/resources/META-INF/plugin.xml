@@ -22,13 +22,13 @@
     </extensions>
 
     <actions>
-        <action id="translateFolder" class="org.py.translate.action.TranslateFolderAction" text="翻译文件夹"
+        <action id="translateFolder" class="org.py.translate.action.TranslateFolderAction" text="translate markdown(翻译)"
                 description="翻译文件夹">
-            <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
         </action>
 
-        <action id="Translate" class="org.py.translate.action.TranslateAction" text="全文翻译">
-            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        <action id="Translate" class="org.py.translate.action.TranslateAction" text="translate markdown(翻译)">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>

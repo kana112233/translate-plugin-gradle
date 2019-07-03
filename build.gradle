@@ -1,12 +1,12 @@
 plugins {
-    id 'java'
+//    id 'java'
     id 'org.jetbrains.intellij' version '0.4.7'
 }
 
 apply plugin: 'org.jetbrains.intellij'
 
 group 'org.py.translate'
-version '2.3.2'
+version '2.4.0'
 
 sourceCompatibility = 1.8
 
@@ -25,6 +25,8 @@ intellij {
 }
 patchPluginXml {
     changeNotes """
+      <p>put 'translate markdown' at the bottom of contextMenu </p>
+      <p> use commonmark to parse markdown </p>
       <p>add thread</p><br>
       <p>delete 3 warning</p><br>
       <p>thread count is 5</p>

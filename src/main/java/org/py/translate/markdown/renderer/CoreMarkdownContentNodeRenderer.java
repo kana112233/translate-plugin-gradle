@@ -5,6 +5,9 @@ import org.commonmark.internal.renderer.text.ListHolder;
 import org.commonmark.internal.renderer.text.OrderedListHolder;
 import org.commonmark.node.*;
 import org.commonmark.renderer.NodeRenderer;
+import org.py.translate.action.TranslateJob;
+import org.py.translate.util.MarkdownUtil;
+import org.py.translate.util.MyCallback;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -15,7 +18,7 @@ import java.util.Set;
  */
 public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements NodeRenderer {
 
-    protected final MarkdownContentNodeRendererContext context;
+    private final MarkdownContentNodeRendererContext context;
     private final MarkdownContentWriter textContent;
 
     private ListHolder listHolder;
@@ -60,6 +63,7 @@ public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements 
     public void visit(Document document) {
         // No rendering itself
         visitChildren(document);
+        textContent.write("\n");
     }
 
     @Override
@@ -73,6 +77,7 @@ public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements 
 //        textContent.write('»');
 
         writeEndOfLineIfNeeded(blockQuote, null);
+        textContent.write('\n');
     }
 
     @Override
@@ -88,17 +93,24 @@ public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements 
         } else {
             listHolder = null;
         }
+        textContent.write('\n');
     }
 
     @Override
     public void visit(Code code) {
         textContent.write('`');
-        textContent.write(translate(code.getLiteral()) );
+        textContent.write(code.getLiteral() );
         textContent.write('`');
     }
 
     private String translate(String str) {
-        return "翻译: "+str;
+//        return str;
+        if(str.trim().startsWith("title:")){
+            return str;
+        }else {
+            String translateText = TranslateJob.parseString(null, str);
+            return translateText;
+        }
     }
 
     @Override
@@ -108,9 +120,11 @@ public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements 
             writeEndOfLineIfNeeded(fencedCodeBlock, null);
         } else {
             textContent.write("```\n");
-            textContent.write(translate(fencedCodeBlock.getLiteral()) );
+            textContent.write(fencedCodeBlock.getLiteral() );
+            textContent.write("\n");
             textContent.write("```\n");
         }
+        textContent.write('\n');
     }
 
     @Override
@@ -122,15 +136,16 @@ public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements 
     public void visit(Heading heading) {
         visitChildren(heading);
         writeEndOfLineIfNeeded(heading, ':');
+        textContent.write('\n');
     }
 
     @Override
     public void visit(ThematicBreak thematicBreak) {
         if (!context.stripNewlines()) {
-            // TODO 添加一个新的token处理标题
             textContent.write("---");
         }
         writeEndOfLineIfNeeded(thematicBreak, null);
+        textContent.write('\n');
     }
 
     @Override
@@ -145,6 +160,7 @@ public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements 
 
     @Override
     public void visit(Image image) {
+        textContent.write('!');
         writeLink(image, image.getTitle(), image.getDestination());
     }
 
@@ -180,6 +196,7 @@ public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements 
             visitChildren(listItem);
             writeEndOfLineIfNeeded(listItem, null);
         }
+//        textContent.write('\n');
     }
 
     @Override
@@ -195,6 +212,7 @@ public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements 
         } else {
             listHolder = null;
         }
+        textContent.write('\n');
     }
 
     @Override
@@ -204,11 +222,13 @@ public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements 
         if (paragraph.getParent() == null || paragraph.getParent() instanceof Document) {
             writeEndOfLineIfNeeded(paragraph, null);
         }
+        textContent.write('\n');
     }
 
     @Override
     public void visit(SoftLineBreak softLineBreak) {
         writeEndOfLineIfNeeded(softLineBreak, null);
+        textContent.write('\n');
     }
 
     @Override
@@ -247,7 +267,7 @@ public class CoreMarkdownContentNodeRenderer extends AbstractVisitor implements 
         } else {
             if (text.getParent() instanceof Heading) {
                 Heading heading = (Heading)text.getParent();
-                StringBuffer str = new StringBuffer();
+                StringBuilder str = new StringBuilder();
                 for (int i = 0; i < heading.getLevel(); i++) {
                      str.append("#");
                 }

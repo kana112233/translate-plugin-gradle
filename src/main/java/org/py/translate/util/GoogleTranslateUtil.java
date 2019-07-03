@@ -93,7 +93,7 @@ public class GoogleTranslateUtil {
             StringBuilder result = new StringBuilder();
             if (null != list && list.size() > 0) {
                 for (Object obj : (List<Object>) list.get(0)) {
-                    result.append(null != ((List<String>) obj).get(0) ? ((List<String>) obj).get(0) + "\n" : "");
+                    result.append(null != ((List<String>) obj).get(0) ? ((List<String>) obj).get(0) + "" : "");
                 }
             }
 

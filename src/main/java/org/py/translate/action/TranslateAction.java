@@ -8,8 +8,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.psi.PsiFile;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
 import org.py.translate.Logger;
 import org.py.translate.constant.GlobalConfig;
+import org.py.translate.markdown.renderer.MarkdownContentRenderer;
 import org.py.translate.util.GoogleTranslateUtil;
 
 import java.io.File;
